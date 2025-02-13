@@ -1,0 +1,14 @@
+===== un_fairness_Cost Results =====
+Total Cost: 502.96
+
+Cost Breakdown:
+  Edge Servers:
+    Fixed: 13.33
+    Cpu: 188.90
+    Mem: 55.42
+    Bandwidth: 123.32
+  Cloud Servers:
+    Cpu: 26.78
+    Mem: 9.52
+    Bandwidth: 24.48
+    Network: 61.21

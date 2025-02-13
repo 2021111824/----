@@ -1,0 +1,14 @@
+===== Cost Results =====
+Total Cost: 313.19
+
+Cost Breakdown:
+  Edge Servers:
+    Fixed: 13.33
+    Cpu: 160.40
+    Mem: 18.75
+    Bandwidth: 107.31
+  Cloud Servers:
+    Cpu: 3.63
+    Mem: 0.38
+    Bandwidth: 2.87
+    Network: 6.50
