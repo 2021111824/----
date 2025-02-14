@@ -9,6 +9,7 @@
     <option name="namespacePackageFolders">
       <list>
         <option value="$MODULE_DIR$/对比-1/多目标优化函数-1" />
+        <option value="$MODULE_DIR$/对比-1/帕累托最优-1" />
       </list>
     </option>
   </component>
