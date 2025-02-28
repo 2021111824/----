@@ -1,0 +1,8 @@
+===== Simulation Results =====
+Jain公平性指数： 0.9973
+所有用户的平均响应时间: 5.22 ms
+
+Response Time Statistics by Priority:
+  Priority 1: Mean=6.73 ms (Limit: 10 ms) [OK]
+  Priority 2: Mean=3.36 ms (Limit: 8 ms) [OK]
+  Priority 3: Mean=2.29 ms (Limit: 6 ms) [OK]

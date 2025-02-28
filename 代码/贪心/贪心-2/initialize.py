@@ -13,7 +13,7 @@ random.seed(42)
 # 初始化用户的资源需求
 def initialize_topology():
     # ========== 参数设置 ==========
-    n, m_edge, m_cloud = 150, 20, 3  # 用户数、边缘服务器数、云服务器数
+    n, m_edge, m_cloud = 100, 20, 3  # 用户数、边缘服务器数、云服务器数
     v_edge, v_cloud = 10, 5  # 边缘服务器和云服务器的网络传播速度 (Mbps)
     b_edge, b_cloud = 100, 500  # 边缘和云服务器的带宽速度  (MB/s)
     P_edge, P_cloud = 600, 1200  # 边缘和云服务器的计算能力 (MB/s)
