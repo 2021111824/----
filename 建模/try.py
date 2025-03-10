@@ -47,7 +47,7 @@ ax2.set_xlabel('用户数量')
 ax2.set_ylabel('加权Jain指数', color='tab:purple')
 
 # 绘制折线图
-ax2.plot(user_counts, greedy_jain, label='贪心算法', color='tab:blue', marker='o', linestyle='--')
+ax2.plot(user_counts, greedy_jain, label='基于贪心的优化方法', color='tab:blue', marker='o', linestyle='--')
 ax2.plot(user_counts, gurobi_jain, label='Gurobi', color='tab:orange', marker='o', linestyle='--')
 ax2.plot(user_counts, ga_jain, label='遗传算法', color='tab:green', marker='o', linestyle='--')
 ax2.plot(user_counts, no_fairness_jain, label='无公平性算法', color='tab:red', marker='o', linestyle='--')
@@ -59,7 +59,7 @@ ax2.set_xticks(user_counts)  # 设置横坐标刻度为100, 150, 200
 ax2.set_xticklabels([str(x) for x in user_counts])  # 设置刻度标签
 
 # 设置图例和标题
-ax2.legend(loc='center left', bbox_to_anchor=(0.8, 0.7))
+ax2.legend(loc='center left', bbox_to_anchor=(0.77, 0.7))
 plt.title('不同算法在不同用户数量下的加权Jain指数对比')
 plt.tight_layout()
 plt.show()

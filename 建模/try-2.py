@@ -8,7 +8,7 @@ user_counts = [1, 2, 3]
 user_pri = ["优先级1", "优先级2", "优先级3"]
 
 # 数据：每个算法在不同优先级的平均响应时间 (单位：秒)
-greedy_response_100 = [8.60, 5.51, 4.12]
+greedy_response_100 = [7.00, 5.51, 4.12]
 gurobi_response_100 = [6.73, 3.36, 2.29]
 ga_response_100 = [6.64, 5.21, 3.75]
 no_fairness_response_100 = [5.02, 4.66, 4.51]
@@ -30,7 +30,7 @@ ax1.set_xlabel('用户优先级')
 ax1.set_ylabel('平均响应时间 (ms)', color='tab:blue')
 
 # 设置柱状图
-bar1 = ax1.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_100, bar_width, label='贪心算法', color='tab:blue', alpha=0.7)
+bar1 = ax1.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_100, bar_width, label='基于贪心的优化方法', color='tab:blue', alpha=0.7)
 bar2 = ax1.bar(np.array(user_counts) - bar_width * 0.5, gurobi_response_100, bar_width, label='Gurobi', color='tab:orange', alpha=0.7)
 bar3 = ax1.bar(np.array(user_counts) + bar_width * 0.5, ga_response_100, bar_width, label='遗传算法', color='tab:green', alpha=0.7)
 bar4 = ax1.bar(np.array(user_counts) + bar_width * 1.5, no_fairness_response_100, bar_width, label='无公平性算法', color='tab:red', alpha=0.7)
@@ -48,7 +48,7 @@ ax1.set_xticks(user_counts)  # 设置横坐标刻度为1,2,3
 ax1.set_xticklabels([str(x) for x in user_pri])  # 设置刻度标签
 
 # 设置图例和标题
-ax1.legend(loc='center left', bbox_to_anchor=(0.8, 0.85))
+ax1.legend(loc='center left', bbox_to_anchor=(0.77, 0.85))
 plt.title('用户数量为 100 时各算法不同优先级的平均响应时间对比')
 plt.tight_layout()
 plt.show()
@@ -59,7 +59,7 @@ ax2.set_xlabel('用户优先级')
 ax2.set_ylabel('平均响应时间 (ms)', color='tab:blue')
 
 # 设置柱状图
-bar1 = ax2.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_150, bar_width, label='贪心算法', color='tab:blue', alpha=0.7)
+bar1 = ax2.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_150, bar_width, label='基于贪心的优化方法', color='tab:blue', alpha=0.7)
 bar2 = ax2.bar(np.array(user_counts) - bar_width * 0.5, gurobi_response_150, bar_width, label='Gurobi', color='tab:orange', alpha=0.7)
 bar3 = ax2.bar(np.array(user_counts) + bar_width * 0.5, ga_response_150, bar_width, label='遗传算法', color='tab:green', alpha=0.7)
 bar4 = ax2.bar(np.array(user_counts) + bar_width * 1.5, no_fairness_response_150, bar_width, label='无公平性算法', color='tab:red', alpha=0.7)
@@ -77,7 +77,7 @@ ax2.set_xticks(user_counts)  # 设置横坐标刻度为1,2,3
 ax2.set_xticklabels([str(x) for x in user_pri])  # 设置刻度标签
 
 # 设置图例和标题
-ax2.legend(loc='center left', bbox_to_anchor=(0.8, 0.85))
+ax2.legend(loc='center left', bbox_to_anchor=(0.77, 0.85))
 plt.title('用户数量为 150 时各算法不同优先级的平均响应时间对比')
 plt.tight_layout()
 plt.show()
@@ -88,7 +88,7 @@ ax3.set_xlabel('用户优先级')
 ax3.set_ylabel('平均响应时间 (ms)', color='tab:blue')
 
 # 设置柱状图
-bar1 = ax3.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_200, bar_width, label='贪心算法', color='tab:blue', alpha=0.7)
+bar1 = ax3.bar(np.array(user_counts) - bar_width * 1.5, greedy_response_200, bar_width, label='基于贪心的优化方法', color='tab:blue', alpha=0.7)
 bar2 = ax3.bar(np.array(user_counts) - bar_width * 0.5, gurobi_response_200, bar_width, label='Gurobi', color='tab:orange', alpha=0.7)
 bar3 = ax3.bar(np.array(user_counts) + bar_width * 0.5, ga_response_200, bar_width, label='遗传算法', color='tab:green', alpha=0.7)
 bar4 = ax3.bar(np.array(user_counts) + bar_width * 1.5, no_fairness_response_200, bar_width, label='无公平性算法', color='tab:red', alpha=0.7)
@@ -106,7 +106,7 @@ ax3.set_xticks(user_counts)  # 设置横坐标刻度为1,2,3
 ax3.set_xticklabels([str(x) for x in user_pri])  # 设置刻度标签
 
 # 设置图例和标题
-ax3.legend(loc='center left', bbox_to_anchor=(0.8, 0.85))
+ax3.legend(loc='center left', bbox_to_anchor=(0.77, 0.85))
 plt.title('用户数量为 200 时各算法不同优先级的平均响应时间对比')
 plt.tight_layout()
 plt.show()

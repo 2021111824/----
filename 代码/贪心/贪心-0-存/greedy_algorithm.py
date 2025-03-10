@@ -20,6 +20,7 @@ def calculate_weighted_jain_index(individual, user_positions, server_positions, 
         weighted_response_time = response_time * weights[i]
         weighted_response_times.append(weighted_response_time)
     weighted_response_times = np.array(weighted_response_times)
+
     numerator = np.sum(weighted_response_times) ** 2  # 加权Jain公平性指数的分子
     denominator = n_users * np.sum(weighted_response_times ** 2)  # 加权Jain公平性指数的分母
     return numerator / denominator if denominator != 0 else 0  # 返回加权Jain公平性指数
@@ -40,6 +41,7 @@ def greedy_algorithm(user_positions, server_positions, request_sizes, priorities
 
     valid_individual = False  # 初始时，分配是无效的
     attempt_count = 0  # 尝试计数--用来限制尝试次数，防止死循环。
+
     while not valid_individual:
         individual = np.zeros((n_users, n_servers), dtype=int)  # 每次尝试时重新初始化分配矩阵
         # 初始化每个服务器的资源使用情况
