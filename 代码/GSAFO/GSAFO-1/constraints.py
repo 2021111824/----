@@ -7,7 +7,7 @@ from calculations import calculate_total_cost, compute_response_time, calculate_
 def check_constraints(individual, user_positions, server_positions, priorities,
                       R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                       cost_edge, cost_cloud, m_edge, max_cost, T_max, request_sizes,
-                      v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, p_net):
+                      v_edge, v_cloud, P_edge, P_cloud, p_net):
     """
     检查约束条件是否满足
 
@@ -52,7 +52,7 @@ def check_constraints(individual, user_positions, server_positions, priorities,
 
         response_time = compute_response_time(
             user_positions[i], server_positions[server_idx], is_edge, request_sizes[i], user_capacities[i],
-            v_edge, v_cloud, b_edge, b_cloud
+            v_edge, v_cloud, bandwidth_demands[i]
         )
         response_times.append(response_time)
 

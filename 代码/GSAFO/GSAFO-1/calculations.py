@@ -48,15 +48,15 @@ def assign_computational_capacity(individual, user_positions, server_positions, 
     return user_capacities
 
 
-def compute_response_time(user, server, is_edge, request_size, user_capacity, v_edge, v_cloud, b_edge, b_cloud):
+def compute_response_time(user, server, is_edge, request_size, user_capacity, v_edge, v_cloud, bandwidth_demands):
     """
     响应时间计算，根据是否为边缘服务器分别处理
     """
     d_ij = np.linalg.norm(user - server)  # 计算用户到服务器的距离
     if is_edge:
-        return d_ij / v_edge + request_size / b_edge + request_size / user_capacity  # 边缘服务器响应时间
+        return d_ij / v_edge + request_size / bandwidth_demands + request_size / user_capacity  # 边缘服务器响应时间
     else:
-        return d_ij / v_cloud + request_size / b_cloud + request_size / user_capacity  # 云服务器响应时间
+        return d_ij / v_cloud + request_size / bandwidth_demands + request_size / user_capacity  # 云服务器响应时间
 
 
 def calculate_response_stats(response_times, priorities):

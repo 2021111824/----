@@ -14,7 +14,7 @@ from visualization import save_priority_distribution, plot_user_server_distribut
 if __name__ == "__main__":
 
     # ========== 数据初始化 ==========
-    n, m_edge, m_cloud, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, \
+    n, m_edge, m_cloud, v_edge, v_cloud,  P_edge, P_cloud, \
         T_max, cost_edge, cost_cloud, p_net, max_cost, \
         user_positions, request_sizes, priorities, weights, server_positions, \
         R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands = initialize_topology()
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     # ========== 运行贪心算法 ==========
     result = greedy_algorithm(user_positions, server_positions, request_sizes, priorities, weights, cpu_demands,
-                              mem_demands, bandwidth_demands, m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud,
+                              mem_demands, bandwidth_demands, m_edge, v_edge, v_cloud, P_edge, P_cloud,
                               cost_edge, cost_cloud, p_net, max_cost, T_max, R_cpu, R_mem, R_bandwidth)
 
     # ========== 结果分析 ==========
@@ -48,8 +48,8 @@ if __name__ == "__main__":
             server_idx = np.argmax(result[i])
             is_edge = server_idx < m_edge
             response_time = compute_response_time(user_positions[i], server_positions[server_idx], is_edge,
-                                                  request_sizes[i], user_capacities[i], v_edge, v_cloud, b_edge,
-                                                  b_cloud)
+                                                  request_sizes[i], user_capacities[i], v_edge, v_cloud,
+                                                  bandwidth_demands[i])
             response_times.append(response_time)
 
         # 平均响应时间
@@ -59,8 +59,8 @@ if __name__ == "__main__":
         response_stats = calculate_response_stats(response_times, priorities)
 
         # 计算加权Jain公平性指数
-        F_jain = calculate_weighted_jain_index(result, user_positions, server_positions, request_sizes, priorities, weights,
-                                                    m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud)
+        F_jain = calculate_weighted_jain_index(result, user_positions, server_positions, request_sizes, priorities,
+                                               weights, m_edge, v_edge, v_cloud, bandwidth_demands, P_edge, P_cloud)
 
         # 记录资源使用情况
         server_cpu_usage = np.zeros(len(server_positions))

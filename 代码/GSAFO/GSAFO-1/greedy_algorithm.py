@@ -5,7 +5,7 @@ from constraints import check_constraints
 
 
 def calculate_weighted_jain_index(individual, user_positions, server_positions, request_sizes, priorities, weights,
-                                  m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud):
+                                  m_edge, v_edge, v_cloud, bandwidth_demands, P_edge, P_cloud):
     """
     计算加权 Jain 公平性指数
     """
@@ -19,7 +19,7 @@ def calculate_weighted_jain_index(individual, user_positions, server_positions, 
         server_idx = np.argmax(individual[i])
         is_edge = server_idx < m_edge
         response_time = compute_response_time(user_positions[i], server_positions[server_idx], is_edge,
-                                              request_sizes[i], user_capacities[i], v_edge, v_cloud, b_edge, b_cloud)
+                                              request_sizes[i], user_capacities[i], v_edge, v_cloud, bandwidth_demands[i])
         weighted_response_time = response_time * weights[i]
         weighted_response_times.append(weighted_response_time)
 
@@ -32,7 +32,7 @@ def calculate_weighted_jain_index(individual, user_positions, server_positions, 
 
 # 贪心算法优化
 def greedy_algorithm(user_positions, server_positions, request_sizes, priorities, weights, cpu_demands, mem_demands,
-                     bandwidth_demands, m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, cost_edge,
+                     bandwidth_demands, m_edge, v_edge, v_cloud, P_edge, P_cloud, cost_edge,
                      cost_cloud, p_net, max_cost, T_max, R_cpu, R_mem, R_bandwidth):
     """
     贪心算法
@@ -73,7 +73,7 @@ def greedy_algorithm(user_positions, server_positions, request_sizes, priorities
 
                 jain_index = calculate_weighted_jain_index(temp_individual, user_positions, server_positions,
                                                            request_sizes, priorities, weights,
-                                                           m_edge, v_edge, v_cloud, b_edge, b_cloud,
+                                                           m_edge, v_edge, v_cloud, bandwidth_demands,
                                                            P_edge, P_cloud)
 
                 if jain_index > best_jain:
@@ -91,7 +91,7 @@ def greedy_algorithm(user_positions, server_positions, request_sizes, priorities
         valid_individual = check_constraints(individual, user_positions, server_positions, priorities,
                                              R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                                              cost_edge, cost_cloud, m_edge, max_cost, T_max, request_sizes,
-                                             v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, p_net)
+                                             v_edge, v_cloud, P_edge, P_cloud, p_net)
 
         attempt_count += 1
 
@@ -101,7 +101,7 @@ def greedy_algorithm(user_positions, server_positions, request_sizes, priorities
 
     # 贪心后进入局部优化
     individual = local_optimization(individual, user_positions, server_positions, request_sizes, priorities,
-                                    weights, m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud,  p_net,
+                                    weights, m_edge, v_edge, v_cloud, P_edge, P_cloud,  p_net,
                                     R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                                     cost_edge, cost_cloud, max_cost, T_max)
     return individual
@@ -109,10 +109,10 @@ def greedy_algorithm(user_positions, server_positions, request_sizes, priorities
 
 # 模拟退火（SA）局部优化
 def local_optimization(individual, user_positions, server_positions, request_sizes, priorities,
-                       weights, m_edge, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud,  p_net,
+                       weights, m_edge, v_edge, v_cloud, P_edge, P_cloud,  p_net,
                        R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                        cost_edge, cost_cloud, max_cost, T_max,
-                       max_iters=100, initial_temp=100, alpha=0.99):
+                       max_iters=10, initial_temp=100, alpha=0.99):
     """
     模拟退火 + 邻域搜索优化（加入约束检查）
     目的：优化贪心算法的结果，跳出局部最优
@@ -122,13 +122,13 @@ def local_optimization(individual, user_positions, server_positions, request_siz
     - 约束检查：确保优化后仍满足所有资源和分配约束
 
     参数：
-    max_iters=100       迭代次数
+    max_iters=10       迭代次数
     initial_temp=100    初始温度
     alpha=0.99          温度衰减率
     """
     num_users = len(user_positions)
     previous_jain = calculate_weighted_jain_index(individual, user_positions, server_positions, request_sizes,
-                                                  priorities, weights, m_edge, v_edge, v_cloud, b_edge, b_cloud,
+                                                  priorities, weights, m_edge, v_edge, v_cloud, bandwidth_demands,
                                                   P_edge, P_cloud)
 
     best_jain = previous_jain
@@ -160,7 +160,7 @@ def local_optimization(individual, user_positions, server_positions, request_siz
                                 if check_constraints(new_individual, user_positions, server_positions, priorities,
                                                      R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                                                      cost_edge, cost_cloud, m_edge, max_cost, T_max, request_sizes,
-                                                     v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, p_net)]
+                                                     v_edge, v_cloud, P_edge, P_cloud, p_net)]
             if feasible_servers:
                 new_server = random.choice(feasible_servers)
                 new_individual[i, current_server] = 0
@@ -170,13 +170,13 @@ def local_optimization(individual, user_positions, server_positions, request_siz
         valid_individual = check_constraints(new_individual, user_positions, server_positions, priorities,
                                              R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands,
                                              cost_edge, cost_cloud, m_edge, max_cost, T_max, request_sizes,
-                                             v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, p_net)
+                                             v_edge, v_cloud, P_edge, P_cloud, p_net)
         if not valid_individual:
             continue  # 如果新解不满足约束，则跳过此次优化
 
         # 计算新 Jain 指数
         new_jain = calculate_weighted_jain_index(new_individual, user_positions, server_positions, request_sizes,
-                                                 priorities, weights, m_edge, v_edge, v_cloud, b_edge, b_cloud,
+                                                 priorities, weights, m_edge, v_edge, v_cloud, bandwidth_demands,
                                                  P_edge, P_cloud)
 
         # 接受新解的条件
