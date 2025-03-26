@@ -3,80 +3,96 @@
 import random
 import numpy as np
 # 固定 numpy 的随机种子
-np.random.seed(42)
+np.random.seed(50)
 # 固定 random 模块的随机种子
-random.seed(42)
+random.seed(50)
+
 
 # ========== 参数初始化 ==========
 # 初始化用户、边缘服务器和云服务器的分布以及资源参数
 # 初始化用户的资源需求
-
-
 def initialize_topology():
-    # 参数配置
-    n, m_edge, m_cloud = 150, 20, 3  # 用户数、边缘服务器数、云服务器数
-    v_edge, v_cloud = 10, 5  # 边缘服务器和云服务器的网络传播速度 (Mbps)
-    b_edge, b_cloud = 100, 500  # 边缘和云服务器的带宽速度  (MB/s)
-    P_edge, P_cloud = 500, 1000  # 边缘和云服务器的计算能力 (MB/s)
-    T_max = {
-        1: 10,  # 优先级 1 用户最大允许响应时间 (ms)
-        2: 8,  # 优先级 2 用户最大允许响应时间 (ms)
-        3: 6,  # 优先级 3 用户最大允许响应时间 (ms)
-    }
+    # ========== 1. 用户数据 ==========
+    # 用户数量初始化
+    n = 200
 
-    # 成本参数
-    monthly_fixed_cost = 20  # 每月固定成本（单位：某种货币）
-    daily_fixed_cost = monthly_fixed_cost / 30  # 每日固定成本
-    cost_edge = {"fixed": daily_fixed_cost, "cpu": 0.5, "mem": 0.3, "bandwidth": 0.1}  # 边缘服务器成本
-    cost_cloud = {"cpu": 0.8, "mem": 0.5, "bandwidth": 0.2}  # 云服务器成本
-    p_net = 0.5  # 网络流量单位成本
-    max_cost = 1000  # 最大允许总成本
+    # 用户位置初始化
+    user_positions = np.random.uniform(0, 200, (n, 2))  # 随机生成用户的二维坐标，在（0,100）坐标区域
 
-    # 用户位置和请求大小初始化
-    user_positions = np.random.uniform(0, 100, (n, 2))  # 随机生成用户的二维坐标
-    request_sizes = np.random.uniform(0.5, 12, n)  # 请求大小 (MB/s)
-
-    # 用户优先级
+    # 用户优先级初始化
     priorities = np.random.choice([1, 2, 3], size=n, p=[0.6, 0.3, 0.1])  # 用户优先级
 
-    # 优先级权重
-    priority_weights = {1: 1, 2: 2, 3: 3}  # 优先级到权重的映射
+    # 用户权重初始化
+    priority_weights = {1: 1, 2: 1.5, 3: 2}  # 优先级到权重的映射
     weights = np.array([priority_weights[priority] for priority in priorities])  # 生成每个用户的权重
 
-    priority_levels = {1: 1, 2: 1.2, 3: 1.5}
-    levels = np.array([priority_levels[priority] for priority in priorities])  # 优先级的加权系数
+    # 用户请求服务数据大小初始化(MB)
+    data_in = np.random.uniform(10, 20, n)
+    data_out = np.random.uniform(10, 20, n)
+    user_data = (data_in + data_out) * 8  # 单位转换 1B = 8bit
+
+    # 用户请求服务的计算单位量(CU)
+    p_user = np.random.uniform(5, 30, n)
+
+    # 用户的计算能力分配量(CU/ms)
+    P_allocation = weights * p_user * 0.5
+
+    # 各优先级用户的最大响应时间
+    T_max = {
+        1: 50,  # 优先级 1 用户最大允许响应时间 (ms)
+        2: 40,  # 优先级 2 用户最大允许响应时间 (ms)
+        3: 30,  # 优先级 3 用户最大允许响应时间 (ms)
+    }
+
+    # ========== 2. 服务器数据 ==========
+    # 服务器数量初始化
+    m_edge = 9  # 边缘服务器数
+    m_cloud = 1  # 云服务器数
 
     # 服务器位置初始化
-    edge_positions = np.random.uniform(0, 100, (m_edge, 2))  # 边缘服务器的位置
-    cloud_positions = np.random.uniform(100, 200, (m_cloud, 2))  # 云服务器的位置
+    edge_positions = np.random.uniform(0, 200, (m_edge, 2))  # 边缘服务器的位置
+    cloud_positions = np.random.uniform(200, 300, (m_cloud, 2))  # 云服务器的位置
     server_positions = np.vstack([edge_positions, cloud_positions])  # 合并服务器位置
 
-    # 用户资源分配(不同优先级根据权重分配)
-    # 根据请求大小计算带宽需求 (单位：Mbps)
-    bandwidth_demands = request_sizes * 1  # 假设每MB请求需要1Mbps带宽
-    bandwidth_demands = bandwidth_demands * levels
-    # 根据请求大小计算CPU需求 (单位：CPU)
-    cpu_demands = np.random.uniform(0.2, 0.4, n) * request_sizes  # 假设每MB请求需要0.2~0.4个CPU
-    cpu_demands = cpu_demands * levels
-    # 根据请求大小计算内存需求 (单位：GB)
-    mem_demands = np.random.uniform(0.02, 0.1, n) * request_sizes  # 假设每MB请求需要0.01~0.05GB内存
-    mem_demands = mem_demands * levels
+    # 传播时延初始化
+    # 用户与边缘服务器之间的延迟矩阵
+    t_delay_e = np.random.uniform(5, 10, (n, m_edge + m_cloud))
+    t_delay_c = np.random.uniform(20, 30, n)
 
-    # 服务器资源上限
-    R_cpu = np.concatenate([
-        np.random.randint(20, 30, m_edge),  # 边缘服务器 CPU 核数
-        np.random.randint(60, 90, m_cloud)  # 云服务器 CPU 核数
-    ])
-    R_mem = np.concatenate([
-        np.random.randint(4, 8, m_edge),  # 边缘服务器内存（GB）
-        np.random.randint(16, 32, m_cloud)  # 云服务器内存（GB）
-    ])
+    # 服务器总可用带宽初始化
     R_bandwidth = np.concatenate([
-        np.random.randint(80, 100, m_edge),  # 边缘服务器带宽（Mbps）
-        np.random.randint(200, 500, m_cloud)  # 云服务器带宽（Mbps）
+        np.random.uniform(8000, 10000, m_edge),  # 边缘服务器总可用带宽为 0.8-1Gbps
+        np.full(m_cloud, 200)  # 云服务器可用带宽为 200Mbps
     ])
 
-    return n, m_edge, m_cloud, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, \
-        T_max, cost_edge, cost_cloud, p_net, max_cost, \
-        user_positions, request_sizes, priorities, weights, server_positions, \
-        R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands
+    # 服务器可用计算资源初始化
+    R_edge = np.concatenate([
+        np.random.uniform(80, 100, m_edge),  # 边缘服务器的可用计算资源(RU)
+        np.full(m_cloud, 20000)  # 云服务器计算资源丰富
+    ])
+
+    # 边缘服务器的总计算能力初始化
+    P_edge = R_edge * 20
+
+    # 云服务计算能力初始化
+    P_cloud = 1000  # 单位（CU/ms）
+
+    # ========== 3. 服务实例数据 ==========
+    # 单个服务实例的计算能力
+    p_m = 50  # 单位（CU/ms）
+
+    # 部署一个服务实例需要的计算资源
+    r_m = 5  # 单位（RU）
+
+    # ========== 4. 成本参数 ==========
+    monthly_fixed_cost = 20  # 每月固定成本（单位：某种货币）
+    daily_fixed_cost = monthly_fixed_cost / 30  # 每日固定成本
+    cost_edge = {"fixed": daily_fixed_cost}  # 边缘服务器成本单价
+    cost_cloud = {"p_net": 0.5}  # 云服务器成本单价
+    max_cost = 100000  # 最大允许总成本
+
+    # 返回初始化数据
+    return n, user_positions, priorities, weights, user_data, p_user, P_allocation, T_max, \
+        m_edge, m_cloud, server_positions, t_delay_e, t_delay_c, R_bandwidth, R_edge, P_edge, P_cloud, \
+        p_m, r_m, cost_edge, cost_cloud, max_cost
+

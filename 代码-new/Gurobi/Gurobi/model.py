@@ -1,9 +1,10 @@
+import math
 import os
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
 from initialize import initialize_topology
-from calculations import assign_computational_capacity, compute_response_time, calculate_response_stats
+from calculations import assign_bandwidth_capacity, compute_response_time, calculate_response_stats
 from visualization import (
     save_priority_distribution,
     plot_user_server_distribution,
@@ -12,17 +13,16 @@ from visualization import (
     plot_server_resource_usage,
     plot_cost_distribution,
     plot_user_server_connections,
-    save_user_server_mapping
+    plot_service_instance_distribution
 )
 
 
 # 创建优化模型
 def create_model():
     # ========== 数据初始化 ==========
-    n, m_edge, m_cloud, v_edge, v_cloud, b_edge, b_cloud, P_edge, P_cloud, \
-        T_max, cost_edge, cost_cloud, p_net, max_cost, \
-        user_positions, request_sizes, priorities, weights, server_positions, \
-        R_cpu, R_mem, R_bandwidth, cpu_demands, mem_demands, bandwidth_demands = initialize_topology()
+    n, user_positions, priorities, weights, user_data, p_user, P_allocation, T_max, \
+        m_edge, m_cloud, server_positions, t_delay_e, t_delay_c, R_bandwidth, R_edge, P_edge, P_cloud, \
+        p_m, r_m, cost_edge, cost_cloud, max_cost = initialize_topology()
 
     # 创建 Gurobi 模型
     model = gp.Model("Maximize_Weighted_Jain")
@@ -57,10 +57,9 @@ def create_model():
         for j in range(m_edge + m_cloud):
             is_edge = j < m_edge  # 判断是否是边缘服务器
             response_time = compute_response_time(
-                user_positions[i], server_positions[j], is_edge, request_sizes[i],
-                assign_computational_capacity(individual, user_positions, server_positions, request_sizes,
-                                              P_edge, P_cloud, m_edge, priorities)[i],
-                v_edge, v_cloud, b_edge, b_cloud
+                t_delay_e[i][j], t_delay_c[i], is_edge, user_data[i],
+                assign_bandwidth_capacity(individual, n, m_edge, m_cloud, user_data, R_bandwidth)[i],
+                p_user[i], P_allocation[i]
             )
             weighted_response_time = response_time * weights[i]  # 加权响应时间
             response_times[(i, j)] = response_time
@@ -72,32 +71,34 @@ def create_model():
     # 添加约束：Z <= S^2 / (n * Q) 的近似约束
     # 这里我们可以通过乘以 n * Q 来避免除法，得到 n * Q * Z <= S^2
     model.addConstr(n * Q * Z <= S * S, name="objective_approx_constraint")
+    c = model.addVars(n, m_edge + m_cloud, vtype=GRB.INTEGER, name="c")
+
+    for i in range(n):
+        for j in range(m_edge + m_cloud):
+            model.addConstr(c[i, j] >= (p_user[i] * x[i, j]) / p_m, name=f"ceil_constraint_{i}_{j}")
 
     # 添加约束1：每个用户只能连接到一个服务器
     for i in range(n):
         model.addConstr(gp.quicksum(x[i, j] for j in range(m_edge + m_cloud)) == 1, name=f"user_{i}_connection")
 
-    # 添加约束2：服务器资源约束
+    # 添加约束2：边缘服务器资源约束
     for j in range(m_edge + m_cloud):
-        # CPU资源约束
-        model.addConstr(gp.quicksum(cpu_demands[i] * x[i, j] for i in range(n)) <= R_cpu[j], name=f"cpu_constraint_{j}")
-        # 内存资源约束
-        model.addConstr(gp.quicksum(mem_demands[i] * x[i, j] for i in range(n)) <= R_mem[j], name=f"mem_constraint_{j}")
-        # 带宽资源约束
-        model.addConstr(gp.quicksum(bandwidth_demands[i] * x[i, j] for i in range(n)) <= R_bandwidth[j],
-                        name=f"bandwidth_constraint_{j}")
+        # 计算资源约束
+        model.addConstr(
+            gp.quicksum(c[i, j] * r_m for i in range(n)) <= R_edge[j],
+            name=f"cpu_constraint_{j}"
+        )
 
     # 添加约束3：每个优先级的所有用户的平均响应时间不超过该优先级的最大响应时间
-    user_capacities = assign_computational_capacity(
-        individual, user_positions, server_positions, request_sizes, P_edge, P_cloud, m_edge, priorities
+    user_bandwidth = assign_bandwidth_capacity(
+        individual, n, m_edge, m_cloud, user_data, R_bandwidth
     )
     for level in np.unique(priorities):
         idx = np.where(priorities == level)[0]
         max_response_time_for_user_priority = T_max[level]
         model.addConstr(
             gp.quicksum(
-                compute_response_time(user_positions[i], server_positions[j], j < m_edge,
-                                      request_sizes[i], user_capacities[i], v_edge, v_cloud, b_edge, b_cloud) * x[i, j]
+                compute_response_time(t_delay_e[i][j], t_delay_c[i], j < m_edge, user_data[i], user_bandwidth[i], p_user[i], P_allocation[i]) * x[i, j]
                 for i in idx for j in range(m_edge + m_cloud)
             ) <= max_response_time_for_user_priority * len(idx),
             name=f"response_time_constraint_{level}"
@@ -106,10 +107,8 @@ def create_model():
     # 添加约束4：总成本不能超过最大成本
     total_cost_expr = gp.quicksum(
         (
-            (cost_edge["cpu"] * cpu_demands[i] + cost_edge["mem"] * mem_demands[i] + cost_edge["bandwidth"] *
-             bandwidth_demands[i] + cost_edge["fixed"]) * x[i, j] if j < m_edge else
-            (cost_cloud["cpu"] * cpu_demands[i] + cost_cloud["mem"] * mem_demands[i] + cost_cloud["bandwidth"] *
-             bandwidth_demands[i] + p_net * request_sizes[i]) * x[i, j]
+            (cost_edge["fixed"]) * x[i, j] if j < m_edge else
+            (cost_cloud["p_net"] * p_user[i]) * x[i, j]
         )
         for i in range(n) for j in range(m_edge + m_cloud)
     )
@@ -132,9 +131,9 @@ def create_model():
     model.update()
 
     # 返回模型及必要的参数
-    return model, x, individual, user_positions, request_sizes, priorities, weights, server_positions, R_cpu, R_mem, R_bandwidth, \
-        cpu_demands, mem_demands, bandwidth_demands, cost_edge, cost_cloud,  n, m_edge, m_cloud, P_edge, P_cloud, \
-        v_edge, v_cloud, b_edge, b_cloud, T_max, p_net, max_cost
+    return model, x, individual, user_positions, priorities, weights, server_positions, R_bandwidth, \
+        cost_edge, cost_cloud,  n, m_edge, m_cloud, \
+        T_max, max_cost, user_data, t_delay_e, t_delay_c, p_user, P_allocation, p_m, r_m, R_edge
 
 
 # 求解模型
@@ -149,9 +148,9 @@ def solve_model():
     os.makedirs(output_folder, exist_ok=True)
 
     # 创建模型
-    model, x, individual, user_positions, request_sizes, priorities, weights, server_positions, R_cpu, R_mem, R_bandwidth, \
-        cpu_demands, mem_demands, bandwidth_demands, cost_edge, cost_cloud,  n, m_edge, m_cloud, P_edge, P_cloud, \
-        v_edge, v_cloud, b_edge, b_cloud, T_max, p_net, max_cost = create_model()
+    model, x, individual, user_positions, priorities, weights, server_positions, R_bandwidth, \
+        cost_edge, cost_cloud,  n, m_edge, m_cloud, \
+        T_max, max_cost, user_data, t_delay_e, t_delay_c, p_user, P_allocation, p_m, r_m, R_edge = create_model()
 
     # 求解模型
     model.optimize()
@@ -167,8 +166,8 @@ def solve_model():
                 if x[i, j].x > 0.5:
                     final_individual[i, j] = 1
 
-        user_capacities = assign_computational_capacity(
-            final_individual, user_positions, server_positions, request_sizes, P_edge, P_cloud, m_edge, priorities
+        user_bandwidth = assign_bandwidth_capacity(
+            final_individual, n, m_edge, m_cloud, user_data, R_bandwidth
         )
 
         # 根据分配情况计算每个用户的响应时间
@@ -177,8 +176,8 @@ def solve_model():
             server_idx = np.argmax(final_individual[u])
             is_edge = server_idx < m_edge
             response_time = compute_response_time(
-                user_positions[u], server_positions[server_idx], is_edge, request_sizes[u],
-                user_capacities[u], v_edge, v_cloud, b_edge, b_cloud
+                t_delay_e[u][server_idx], t_delay_c[u], is_edge,
+                user_data[u], user_bandwidth[u], p_user[u], P_allocation[u]
             )
             response_times.append(response_time)
 
@@ -205,9 +204,10 @@ def solve_model():
         print(f"Simulation results saved to '{output_folder}'.\n")
 
         # 计算各服务器的资源使用情况
-        server_cpu_usage = np.sum(final_individual * cpu_demands[:, None], axis=0)
-        server_mem_usage = np.sum(final_individual * mem_demands[:, None], axis=0)
-        server_bandwidth_usage = np.sum(final_individual * bandwidth_demands[:, None], axis=0)
+        server_compute_resource_usage = np.sum(np.ceil((final_individual * p_user[:, None]) / p_m) * r_m, axis=0)
+
+        # 计算每个服务器上部署的服务实例数量
+        service_instances = server_compute_resource_usage / r_m
 
         # 获取分配到云服务器的用户索引
         user_allocated_to_cloud = np.where(np.argmax(final_individual, axis=1) >= m_edge)[0]
@@ -215,16 +215,10 @@ def solve_model():
         # 计算成本分布
         cost_details = {
             "edge": {
-                "cpu": np.sum(server_cpu_usage[:m_edge] * cost_edge["cpu"]),
-                "mem": np.sum(server_mem_usage[:m_edge] * cost_edge["mem"]),
-                "bandwidth": np.sum(server_bandwidth_usage[:m_edge] * cost_edge["bandwidth"]),
                 "fixed": m_edge * cost_edge["fixed"]
             },
             "cloud": {
-                "cpu": np.sum(server_cpu_usage[m_edge:] * cost_cloud["cpu"]),
-                "mem": np.sum(server_mem_usage[m_edge:] * cost_cloud["mem"]),
-                "bandwidth": np.sum(server_bandwidth_usage[m_edge:] * cost_cloud["bandwidth"]),
-                "network": np.sum(request_sizes[user_allocated_to_cloud] * p_net)
+                "p_net": np.sum(p_user[user_allocated_to_cloud] * cost_cloud["p_net"])
             },
         }
         total_edge_cost = sum(cost_details["edge"].values())
@@ -232,15 +226,29 @@ def solve_model():
         total_cost = total_edge_cost + total_cloud_cost
 
         # 可视化和其他分析
-        save_user_server_mapping(final_individual, output_folder)
         save_priority_distribution(priorities, output_folder)
         plot_user_server_distribution(user_positions, server_positions, priorities, m_edge, output_folder)
-        plot_user_server_connections(user_positions, server_positions, final_individual, priorities, m_edge, output_folder)
+        # 2. 绘制响应时间分布
         plot_response_time_distribution(response_times, priorities, output_folder)
+
+        # 3. 绘制平均响应时间柱状图
         plot_avg_response_time(response_times, priorities, output_folder, T_max)
-        plot_server_resource_usage(server_cpu_usage, server_mem_usage, server_bandwidth_usage,
-                                   R_cpu, R_mem, R_bandwidth, m_edge, output_folder)
-        plot_cost_distribution(cost_details, output_folder, total_edge_cost, total_cloud_cost, total_cost, max_cost)
+
+        # 4. 绘制服务器资源使用情况
+        plot_server_resource_usage(server_compute_resource_usage, R_edge, m_edge, output_folder)
+
+        # 5. 绘制用户和服务器的连接图
+        plot_user_server_connections(user_positions, server_positions, final_individual, priorities, m_edge, output_folder)
+
+        # 6. 绘制服务器部署成本图
+        plot_cost_distribution(cost_details, output_folder,
+                               total_edge_cost=cost_details['edge']['fixed'],
+                               total_cloud_cost=cost_details['cloud']['p_net'],
+                               total_cost=total_cost,
+                               cost_limit=max_cost)
+
+        # 7. 绘制服务器上的服务实例部署情况
+        plot_service_instance_distribution(service_instances, output_folder)
     else:
         print(f"求解失败，状态码: {model.status}")
 

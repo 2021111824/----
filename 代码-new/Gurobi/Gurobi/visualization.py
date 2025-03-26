@@ -78,6 +78,7 @@ def plot_response_time_distribution(response_times, priorities, output_folder):
     绘制响应时间分布，包括整体分布和按优先级的分布
     """
     response_times = np.array(response_times)  # 将响应时间转换为 NumPy 数组
+    print(response_times)
     priorities = np.array(priorities)  # 将优先级也转换为 NumPy 数组
     colors = ['blue', 'orange', 'purple']  # 为每个优先级分配颜色
 
@@ -140,6 +141,7 @@ def plot_avg_response_time(response_times, priorities, output_folder, T_max):
     # 创建柱形图
     plt.figure(figsize=(8, 5))
     bars = plt.bar(levels, avg_responses, color=[colors[level] for level in levels], alpha=0.7)
+    plt.xticks(levels, [str(level) for level in levels])  # 确保 X 轴只显示整数优先级
 
     # 添加柱形顶部标注
     for bar, value in zip(bars, avg_responses):
@@ -160,108 +162,43 @@ def plot_avg_response_time(response_times, priorities, output_folder, T_max):
     plt.show()
 
 
-def plot_server_resource_usage(server_cpu_usage, server_mem_usage, server_bandwidth_usage,
-                               R_cpu, R_mem, R_bandwidth, m_edge, output_folder):
+def plot_server_resource_usage(server_compute_resource_usage, R_edge, m_edge, output_folder):
     """
-    绘制服务器资源利用率，包括 CPU、内存和带宽，并区分边缘和云服务器。
+    绘制边缘服务器资源利用率，包括计算资源和带宽
     同时显示每个资源使用占该服务器最大资源的百分比，并显示整体资源利用率。
     """
-    n_servers = len(server_cpu_usage)
+    n_servers = len(server_compute_resource_usage)
     server_indices = np.arange(n_servers)
 
-    # 边缘和云服务器资源上限
-    max_edge_cpu = max(R_cpu[:m_edge])
-    max_cloud_cpu = max(R_cpu[m_edge:])
-    max_edge_mem = max(R_mem[:m_edge])
-    max_cloud_mem = max(R_mem[m_edge:])
-    max_edge_bandwidth = max(R_bandwidth[:m_edge])
-    max_cloud_bandwidth = max(R_bandwidth[m_edge:])
+    # 边缘服务器资源上限
+    max_edge_compute = max(R_edge[:m_edge])
+    # max_cloud_compute = max(R_compute[m_edge:])
 
     # 计算资源使用占比（百分比）
-    cpu_percentage = np.array(server_cpu_usage) / np.array(R_cpu) * 100
-    mem_percentage = np.array(server_mem_usage) / np.array(R_mem) * 100
-    bandwidth_percentage = np.array(server_bandwidth_usage) / np.array(R_bandwidth) * 100
+    compute_percentage = np.array(server_compute_resource_usage) / np.array(R_edge) * 100
 
     # 计算边缘服务器的整体资源利用率
-    total_edge_cpu_usage = np.sum(server_cpu_usage[:m_edge])
-    total_edge_mem_usage = np.sum(server_mem_usage[:m_edge])
-    total_edge_bandwidth_usage = np.sum(server_bandwidth_usage[:m_edge])
+    total_edge_compute_usage = np.sum(server_compute_resource_usage[:m_edge])
+    total_edge_compute_max = np.sum(R_edge[:m_edge])
 
-    total_edge_cpu_max = np.sum(R_cpu[:m_edge])
-    total_edge_mem_max = np.sum(R_mem[:m_edge])
-    total_edge_bandwidth_max = np.sum(R_bandwidth[:m_edge])
+    edge_compute_usage_rate = total_edge_compute_usage / total_edge_compute_max * 100
 
-    edge_cpu_usage_rate = total_edge_cpu_usage / total_edge_cpu_max * 100
-    edge_mem_usage_rate = total_edge_mem_usage / total_edge_mem_max * 100
-    edge_bandwidth_usage_rate = total_edge_bandwidth_usage / total_edge_bandwidth_max * 100
-
-    # 绘制 CPU 使用率
+    # 绘制 计算资源 使用率
     plt.figure(figsize=(10, 6))
-    plt.bar(server_indices[:m_edge], server_cpu_usage[:m_edge], color='blue', alpha=0.7, label="Edge Servers")
-    plt.bar(server_indices[m_edge:], server_cpu_usage[m_edge:], color='red', alpha=0.7, label="Cloud Servers")
-    plt.axhline(y=max_edge_cpu, color='blue', linestyle='--', label="Max Edge CPU")
-    plt.axhline(y=max_cloud_cpu, color='red', linestyle='--', label="Max Cloud CPU")
-    plt.text(m_edge - 1, max_edge_cpu + 1, f"Edge Total CPU Usage: {edge_cpu_usage_rate:.1f}%", ha='center',
+    plt.bar(server_indices[:m_edge], server_compute_resource_usage[:m_edge], color='blue', alpha=0.7, label="Edge Servers")
+    plt.axhline(y=max_edge_compute, color='blue', linestyle='--', label="Max Edge Compute Resources")
+    plt.text(m_edge - 1, max_edge_compute + 1, f"Edge Total Compute Resources Usage: {edge_compute_usage_rate:.1f}%", ha='center',
              color='black', fontsize=10)
 
     # 添加百分比标签
     for i in range(m_edge):
-        plt.text(i, server_cpu_usage[i] + 0.5, f"{cpu_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-    for i in range(m_edge, n_servers):
-        plt.text(i, server_cpu_usage[i] + 0.5, f"{cpu_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-
-    plt.title("Server CPU Usage")
+        plt.text(i, server_compute_resource_usage[i] + 0.5, f"{compute_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
+    plt.title("Server Compute Resources Usage")
     plt.xlabel("Server Index")
-    plt.ylabel("CPU Usage")
+    plt.ylabel("Compute Resources Usage")
     plt.legend()
     plt.grid(alpha=0.5)
-    plt.savefig(os.path.join(output_folder, "server_cpu_usage.png"))
-    plt.show()
-
-    # 绘制内存使用率
-    plt.figure(figsize=(10, 6))
-    plt.bar(server_indices[:m_edge], server_mem_usage[:m_edge], color='blue', alpha=0.7, label="Edge Servers")
-    plt.bar(server_indices[m_edge:], server_mem_usage[m_edge:], color='red', alpha=0.7, label="Cloud Servers")
-    plt.axhline(y=max_edge_mem, color='blue', linestyle='--', label="Max Edge Memory")
-    plt.axhline(y=max_cloud_mem, color='red', linestyle='--', label="Max Cloud Memory")
-    plt.text(m_edge - 1, max_edge_mem + 1, f"Edge Total Memory Usage: {edge_mem_usage_rate:.1f}%", ha='center',
-             color='black', fontsize=10)
-
-    # 添加百分比标签
-    for i in range(m_edge):
-        plt.text(i, server_mem_usage[i] + 0.5, f"{mem_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-    for i in range(m_edge, n_servers):
-        plt.text(i, server_mem_usage[i] + 0.5, f"{mem_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-
-    plt.title("Server Memory Usage")
-    plt.xlabel("Server Index")
-    plt.ylabel("Memory Usage (GB)")
-    plt.legend()
-    plt.grid(alpha=0.5)
-    plt.savefig(os.path.join(output_folder, "server_mem_usage.png"))
-    plt.show()
-
-    # 绘制带宽使用率
-    plt.figure(figsize=(10, 6))
-    plt.bar(server_indices[:m_edge], server_bandwidth_usage[:m_edge], color='blue', alpha=0.7, label="Edge Servers")
-    plt.bar(server_indices[m_edge:], server_bandwidth_usage[m_edge:], color='red', alpha=0.7, label="Cloud Servers")
-    plt.axhline(y=max_edge_bandwidth, color='blue', linestyle='--', label="Max Edge Bandwidth")
-    plt.axhline(y=max_cloud_bandwidth, color='red', linestyle='--', label="Max Cloud Bandwidth")
-    plt.text(m_edge - 1, max_edge_bandwidth + 1, f"Edge Total Bandwidth Usage: {edge_bandwidth_usage_rate:.1f}%",
-             ha='center', color='black', fontsize=10)
-
-    # 添加百分比标签
-    for i in range(m_edge):
-        plt.text(i, server_bandwidth_usage[i] + 0.5, f"{bandwidth_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-    for i in range(m_edge, n_servers):
-        plt.text(i, server_bandwidth_usage[i] + 0.5, f"{bandwidth_percentage[i]:.1f}%", ha='center', color='black', fontsize=7)
-
-    plt.title("Server Bandwidth Usage")
-    plt.xlabel("Server Index")
-    plt.ylabel("Bandwidth Usage (Mbps)")
-    plt.legend()
-    plt.grid(alpha=0.5)
-    plt.savefig(os.path.join(output_folder, "server_bandwidth_usage.png"))
+    plt.savefig(os.path.join(output_folder, "server_compute_resources_usage.png"))
     plt.show()
 
 
@@ -270,7 +207,7 @@ def plot_cost_distribution(cost_details, output_folder, total_edge_cost, total_c
     绘制边缘服务器和云服务器的成本分布，并在图表下方标注汇总信息。
     """
     # 定义固定顺序
-    categories = ["Cpu", "Mem", "Bandwidth", "Fixed", "Network"]
+    categories = ["Fixed", "P_net"]
     edge_costs = [cost_details["edge"].get(cat.lower(), 0) for cat in categories]  # 边缘节点按顺序获取成本
     cloud_costs = [cost_details["cloud"].get(cat.lower(), 0) for cat in categories]  # 云节点按顺序获取成本
 
@@ -335,16 +272,21 @@ def plot_user_server_connections(user_positions, server_positions, best_solution
     plt.show()
 
 
-def save_user_server_mapping(individual, output_folder):
-    """
-    将每个用户连接到的服务器信息保存到文件中
-    """
-    output_file = os.path.join(output_folder, "user_server_mapping.txt")
-    with open(output_file, "w") as f:
-        f.write("User-to-Server Mapping:\n")
-        f.write("=======================\n")
-        for user_id, allocation in enumerate(individual):
-            server_id = np.argmax(allocation)  # 获取用户分配到的服务器索引
-            f.write(f"User {user_id} -> Server {server_id}\n")
-    print(f"User-to-Server mapping saved to {output_file}")
+# 绘制每个服务器上的服务实例部署情况
+def plot_service_instance_distribution(service_instances, output_folder):
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(range(len(service_instances)), service_instances, color='skyblue')
 
+    # 在每个柱形图上添加服务实例的数量标签
+    for bar in bars:
+        height = bar.get_height()  # 获取柱子的高度，即服务实例数量
+        plt.text(bar.get_x() + bar.get_width() / 2, height, str(int(height)),
+                 ha='center', va='bottom', fontsize=10)  # 在柱形图上方显示数量
+
+    plt.xlabel("Server Index")
+    plt.ylabel("Number of Service Instances")
+    plt.title("Service Instances Deployed per Server")
+    plt.xticks(range(len(service_instances)))
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_folder, "service_instance_distribution.png"))
+    plt.show()
