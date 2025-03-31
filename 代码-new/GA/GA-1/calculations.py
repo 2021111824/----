@@ -1,6 +1,11 @@
 # 计算模块--calculations.py
 # 包含响应时间计算、成本计算等逻辑。
 import numpy as np
+import random
+# 固定 numpy 的随机种子
+np.random.seed(42)
+# 固定 random 模块的随机种子
+random.seed(42)
 
 
 # ========== 计算逻辑 ==========
@@ -29,30 +34,41 @@ def assign_bandwidth_capacity(individual, n, m_edge, m_cloud, user_data, R_bandw
 
         assigned_bandwidth = 0
         for j in range(m_edge):  # 边缘服务器
-            if total_data_demand_edge[j] > 0:  # 只有当总需求大于0时才进行计算
-                assigned_bandwidth += R_bandwidth[j] * (user_demand / total_data_demand_edge[j])  # 按该用户在边缘服务器上请求占比分配带宽
-            else:
-                assigned_bandwidth += R_bandwidth[j]  # 如果该服务器没有其他用户，分配所有带宽给该用户
+            if np.argmax(individual[i]) == j:
+                if total_data_demand_edge[j] > 0:  # 只有当总需求大于0时才进行计算
+                    assigned_bandwidth = R_bandwidth[j] * (user_demand / total_data_demand_edge[j])  # 按该用户在边缘服务器上请求占比分配带宽
+                else:
+                    assigned_bandwidth = R_bandwidth[j]  # 如果该服务器没有其他用户，分配所有带宽给该用户
 
         for j in range(m_edge, m_edge + m_cloud):  # 云服务器
-            if total_data_demand_cloud[j - m_edge] > 0:  # 只有当总需求大于0时才进行计算
-                assigned_bandwidth += user_bandwidth[j]
+            if np.argmax(individual[i]) == j:
+                if total_data_demand_cloud[j - m_edge] > 0:  # 只有当总需求大于0时才进行计算
+                    assigned_bandwidth = R_bandwidth[j]
 
-        user_bandwidth[i] = assigned_bandwidth
+        user_bandwidth[i] = assigned_bandwidth * np.random.uniform(0.8, 1.2)
 
     return user_bandwidth
 
 
-# 计算各个用户的响应时间
+# 计算各用户的响应时间
 def compute_response_time(t_delay_e, t_delay_c, is_edge, user_data, user_bandwidth, p_user, P_allocation):
     """
     响应时间计算，根据是否为边缘服务器分别处理
     总时延（ms） = 传播时延（延迟） + 传输实验（总数据量/带宽） + 处理时延（总计算需求/计算能力）
     """
     if is_edge:
+        # print("连接到边缘服务器")
+        # print("用户数据量：" + str(user_data) + "Mbit；用户带宽：" + str(user_bandwidth) + "Mbps；用户计算单位需求：" + str(p_user) + "：分配给用户的计算能力：" + str(P_allocation))
+        # print("传播延迟：" + str(t_delay_e) + "ms；传输延迟：" + str((user_data / user_bandwidth) * 1000) + "ms；处理延迟：" + str((p_user / P_allocation)) + "ms")
+        # print("总时延：" + str(t_delay_e + (user_data / user_bandwidth) * 1000 + (p_user / P_allocation)) + "ms")
         return t_delay_e + (user_data / user_bandwidth) * 1000 + (p_user / P_allocation)  # 边缘服务器响应时间
     else:
-        return t_delay_c + (user_data / user_bandwidth) * 1000 + (p_user / P_allocation)  # 云服务器响应时间
+        # print("连接到云服务器")
+        # print("用户数据量：" + str(user_data) + "Mbit；用户带宽：" + str(user_bandwidth) + "Mbps；用户计算单位需求：" + str(
+        #     p_user) + "：分配给用户的计算能力：" + str((P_allocation * 10)))
+        # print("传播延迟：" + str(t_delay_c) + "ms；传输延迟：" + str((user_data / user_bandwidth) * 1000) + "ms；处理延迟：" + str(p_user / (P_allocation * 10)) + "ms")
+        # print("总时延：" + str(t_delay_c + (user_data / user_bandwidth) * 1000 + (p_user / (P_allocation * 10))) + "ms")
+        return t_delay_c + (user_data / user_bandwidth) * 1000 + (p_user / (P_allocation * 10))  # 云服务器响应时间
 
 
 # 统计不同优先级用户的响应时间情况
