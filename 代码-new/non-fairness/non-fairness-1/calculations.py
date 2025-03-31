@@ -90,11 +90,11 @@ def calculate_edge_cost(individual, m_edge, cost_edge):
 
     edge_cost_details = {"fixed": 0}
 
-    # 遍历用户分配情况，累加边缘服务器的成本
-    for i in range(n_users):  # 遍历所有用户
-        for j in range(m_edge):  # 遍历所有边缘服务器
-            if individual[i, j] == 1:  # 如果用户分配到边缘服务器
-                edge_cost_details["fixed"] += cost_edge["fixed"]
+    # 计算真正被使用的边缘服务器数量
+    used_edge_servers = np.any(individual[:, :m_edge], axis=0).sum()
+
+    # 计算固定成本（只计算使用的服务器数量）
+    edge_cost_details["fixed"] = used_edge_servers * cost_edge["fixed"]
 
     # 计算总成本
     total_edge_cost = sum(edge_cost_details.values())

@@ -1,12 +1,12 @@
 ===== Simulation Results =====
-Best Fitness (-total_response_time): -1977.2619
-Best Fitness (Jain Fairness Index_2): 0.9634
-Average Response Time of Best Solution: 9.89 ms
+Best Fitness (-total_response_time): -2282.4056
+Best Fitness (Jain Fairness Index_2): 0.9820
+Average Response Time of Best Solution: 11.41 ms
 
 Response Time Statistics by Priority:
   Priority 1: Mean=11.38 ms (Limit: 30 ms) [OK]
-  Priority 2: Mean=8.36 ms (Limit: 25 ms) [OK]
-  Priority 3: Mean=7.07 ms (Limit: 20 ms) [OK]
+  Priority 2: Mean=11.38 ms (Limit: 25 ms) [OK]
+  Priority 3: Mean=11.60 ms (Limit: 20 ms) [OK]
 
 User-to-Server Assignment:
   User 0 -> Server 7 (Edge)

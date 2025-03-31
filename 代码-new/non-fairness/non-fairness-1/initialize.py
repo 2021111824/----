@@ -23,7 +23,7 @@ def initialize_topology():
     priorities = np.random.choice([1, 2, 3], size=n, p=[0.6, 0.3, 0.1])  # 用户优先级
 
     # 用户权重初始化
-    priority_weights = {1: 1, 2: 1.5, 3: 2}  # 优先级到权重的映射
+    priority_weights = {1: 1, 2: 1, 3: 1}  # 优先级到权重的映射
     weights = np.array([priority_weights[priority] for priority in priorities])  # 生成每个用户的权重
 
     # 用户请求服务数据大小初始化(MB)

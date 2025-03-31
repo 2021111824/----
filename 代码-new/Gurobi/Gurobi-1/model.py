@@ -3,7 +3,8 @@ import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
 from initialize import initialize_topology
-from calculations import assign_bandwidth_capacity, compute_response_time, calculate_response_stats
+from calculations import assign_bandwidth_capacity, compute_response_time, calculate_response_stats, \
+    calculate_total_cost
 from visualization import (
     save_priority_distribution,
     plot_user_server_distribution,
@@ -231,21 +232,8 @@ def solve_model():
         # 计算每个服务器上部署的服务实例数量
         service_instances = server_compute_resource_usage / r_m
 
-        # 获取分配到云服务器的用户索引
-        user_allocated_to_cloud = np.where(np.argmax(final_individual, axis=1) >= m_edge)[0]
-
-        # 计算成本分布
-        cost_details = {
-            "edge": {
-                "fixed": m_edge * cost_edge["fixed"]
-            },
-            "cloud": {
-                "p_net": np.sum(p_user[user_allocated_to_cloud] * cost_cloud["p_net"])
-            },
-        }
-        total_edge_cost = sum(cost_details["edge"].values())
-        total_cloud_cost = sum(cost_details["cloud"].values())
-        total_cost = total_edge_cost + total_cloud_cost
+        # 计算总成本和分项成本
+        total_cost, cost_details = calculate_total_cost(final_individual, m_edge, cost_edge, cost_cloud, p_user)
 
         # 可视化和其他分析
         save_priority_distribution(priorities, output_folder)
