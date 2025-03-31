@@ -36,7 +36,7 @@ def initialize_population(n, m_edge, m_cloud, Population, priorities, R_bandwidt
                     random_server_idx = np.random.randint(0, server_count)  # 随机选择一个服务器
 
                     # 检查该服务器是否资源满足限制
-                    if (math.ceil((server_compute_capability[random_server_idx] + p_user[i]) / p_m) * r_m <= R_edge[random_server_idx]):
+                    if math.ceil((server_compute_capability[random_server_idx] + p_user[i]) / p_m) * r_m <= R_edge[random_server_idx]:
                         # 如果满足 CPU、内存和带宽约束，分配用户到服务器
                         individual[i, random_server_idx] = 1
                         server_compute_capability[random_server_idx] += p_user[i]

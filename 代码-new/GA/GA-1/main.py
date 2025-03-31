@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # 绘制用户和服务器的初始分布
     plot_user_server_distribution(user_positions, server_positions, priorities, m_edge, output_folder)
 
-    # ========== 运行贪心算法 ==========
+    # ========== 运行遗传算法 ==========
     best_solution, best_fitness, best_response_times, fitness_history = genetic_algorithm(
         n, m_edge, m_cloud, priorities, weights, R_bandwidth, cost_edge, cost_cloud,
         Population, G_max, P_crossover, P_mutation, max_cost, T_max, p_user, p_m, r_m, R_edge,

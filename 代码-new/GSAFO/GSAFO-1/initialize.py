@@ -64,7 +64,7 @@ def initialize_topology():
         np.random.uniform(100000, 200000, m_edge),  # 边缘服务器总可用带宽为 5-10Gbps
         np.full(m_cloud, 800)  # 云服务器可用带宽为 500Mbps
     ])
-    print(R_bandwidth)
+    # print(R_bandwidth)
 
     # 服务器可用计算资源初始化
     R_edge = np.concatenate([

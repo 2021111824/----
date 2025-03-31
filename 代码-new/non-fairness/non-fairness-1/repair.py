@@ -48,7 +48,7 @@ def repair_individual(individual, n, m_edge, m_cloud, user_data, R_bandwidth, pr
             avg_response_time = np.mean([response_times[j] for j in range(n_users) if priorities[j] == priority])
 
             # 检查该优先级的平均响应时间和资源约束是否超限
-            if (math.ceil((server_compute_capability[server_idx]) / p_m) * r_m <= R_edge[server_idx] or
+            if (math.ceil((server_compute_capability[server_idx]) / p_m) * r_m > R_edge[server_idx] or
                     avg_response_time > T_max[priority]):
 
                 # 清除当前分配

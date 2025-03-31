@@ -62,6 +62,7 @@ def check_constraints(individual, n, m_edge, m_cloud, priorities, R_bandwidth,
     # 检查约束3：边缘节点计算资源限制
     # 检查每个服务器的资源是否超过上限
     for j in range(n_servers):
+        # print(f"Server {j} compute resource usage: {server_compute_resource_usage[j]} | Resource limit: {R_edge[j]}")
         if server_compute_resource_usage[j] > R_edge[j]:
             return False
 
