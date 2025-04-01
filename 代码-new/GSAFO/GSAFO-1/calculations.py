@@ -3,9 +3,9 @@
 import numpy as np
 import random
 # 固定 numpy 的随机种子
-np.random.seed(42)
+np.random.seed(30)
 # 固定 random 模块的随机种子
-random.seed(42)
+random.seed(30)
 
 
 # ========== 计算逻辑 ==========
@@ -102,7 +102,6 @@ def calculate_edge_cost(individual, m_edge, cost_edge):
     """
     计算边缘服务器的成本
     """
-    n_users, n_servers = individual.shape
 
     edge_cost_details = {"fixed": 0}
 

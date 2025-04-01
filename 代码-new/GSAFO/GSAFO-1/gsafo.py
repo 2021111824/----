@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 import random
 from calculations import assign_bandwidth_capacity, compute_response_time
@@ -17,7 +16,8 @@ def calculate_weighted_jain_index(individual, n, m_edge, m_cloud, weights, t_del
     for i in range(n):
         server_idx = np.argmax(individual[i])
         is_edge = server_idx < m_edge
-        response_time = compute_response_time(t_delay_e[i][server_idx], t_delay_c[i], is_edge, user_data[i], user_bandwidth[i], p_user[i], P_allocation[i])
+        response_time = compute_response_time(t_delay_e[i][server_idx], t_delay_c[i], is_edge, user_data[i],
+                                              user_bandwidth[i], p_user[i], P_allocation[i])
         weighted_response_time = response_time * weights[i]
         weighted_response_times.append(weighted_response_time)
 
@@ -49,7 +49,6 @@ def greedy_algorithm(n, m_edge, m_cloud, priorities, weights, cost_edge, cost_cl
     while not valid_individual:
         individual = np.zeros((n_users, n_servers), dtype=int)
         server_compute_capability = np.zeros(n_servers)
-        server_compute_resource_usage = np.zeros(n_servers)  # 边缘服务器的计算资源使用情况
 
         # 遍历用户，为每个用户寻找最优服务器
         for i in sorted_indices:

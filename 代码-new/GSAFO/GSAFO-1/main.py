@@ -4,7 +4,7 @@ import numpy as np
 
 from calculations import calculate_response_stats, calculate_total_cost, assign_bandwidth_capacity, \
     compute_response_time
-from greedy_algorithm import greedy_algorithm, calculate_weighted_jain_index
+from gsafo import greedy_algorithm, calculate_weighted_jain_index
 from initialize import initialize_topology
 from visualization import save_priority_distribution, plot_user_server_distribution, plot_fitness_history, \
     plot_response_time_distribution, plot_avg_response_time, plot_server_resource_usage, plot_user_server_connections, \

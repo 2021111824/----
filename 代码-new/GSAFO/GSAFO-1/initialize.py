@@ -3,9 +3,9 @@
 import random
 import numpy as np
 # 固定 numpy 的随机种子
-np.random.seed(42)
+np.random.seed(30)
 # 固定 random 模块的随机种子
-random.seed(42)
+random.seed(30)
 
 
 # ========== 参数初始化 ==========
@@ -61,8 +61,8 @@ def initialize_topology():
 
     # 服务器总可用带宽初始化
     R_bandwidth = np.concatenate([
-        np.random.uniform(100000, 200000, m_edge),  # 边缘服务器总可用带宽为 5-10Gbps
-        np.full(m_cloud, 800)  # 云服务器可用带宽为 500Mbps
+        np.random.uniform(100000, 200000, m_edge),  # 边缘服务器总可用带宽为 10-20Gbps
+        np.full(m_cloud, 800)  # 云服务器可用带宽为 800Mbps
     ])
     # print(R_bandwidth)
 

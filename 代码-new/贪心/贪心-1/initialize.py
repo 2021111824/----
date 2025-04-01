@@ -3,9 +3,9 @@
 import random
 import numpy as np
 # 固定 numpy 的随机种子
-np.random.seed(42)
+np.random.seed(30)
 # 固定 random 模块的随机种子
-random.seed(42)
+random.seed(30)
 
 
 # ========== 参数初始化 ==========
