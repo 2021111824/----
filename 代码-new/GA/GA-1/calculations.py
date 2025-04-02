@@ -102,7 +102,6 @@ def calculate_edge_cost(individual, m_edge, cost_edge):
     """
     计算边缘服务器的成本
     """
-    n_users, n_servers = individual.shape
 
     edge_cost_details = {"fixed": 0}
 
