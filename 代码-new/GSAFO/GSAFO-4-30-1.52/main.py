@@ -34,7 +34,7 @@ if __name__ == "__main__":
     best_final_result = None
     best_final_jain = -1
     best_final_response_times = None
-    for _ in range(3):
+    for _ in range(5):
         result, best_jain, best_response_times = greedy_algorithm(n, m_edge, m_cloud, priorities, weights, cost_edge, cost_cloud, max_cost, T_max,
                                                                   R_bandwidth, t_delay_e, t_delay_c, p_m, r_m, R_edge, user_data, p_user, P_allocation)
         if best_jain > best_final_jain:

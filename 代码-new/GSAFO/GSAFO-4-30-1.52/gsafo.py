@@ -187,6 +187,60 @@ def sa_local_optimization(individual, n, m_edge, m_cloud, priorities, weights,
                 feasible_servers = [j for j in range(num_servers) if j != current_server]
                 if feasible_servers:
                     new_server = random.choice(feasible_servers)
+                    # 循环优化
+                    for _ in range(max_iters):
+                        improved = False
+                        operation = random.choice(["swap", "reassign", "move_user", "reassign_subset"])  # 随机选择优化方式
+                        new_individual = individual.copy()
+
+                        # 交换策略（swap）
+                        if operation == "swap":
+                            i, j = np.random.choice(num_users, 2, replace=False)
+                            if np.argmax(individual[i]) != np.argmax(individual[j]):  # 确保交换有意义
+                                new_individual[i, np.argmax(individual[j])] = 1
+                                new_individual[j, np.argmax(individual[i])] = 1
+                                new_individual[i, np.argmax(individual[i])] = 0
+                                new_individual[j, np.argmax(individual[j])] = 0
+
+                        # 重新分配策略（reassign）
+                        elif operation == "reassign":
+                            i = np.random.choice(num_users)
+                            current_server = np.argmax(individual[i])
+
+                            feasible_servers = [j for j in range(num_servers)
+                                                if check_constraints(new_individual, n, m_edge, m_cloud, priorities,
+                                                                     R_bandwidth,
+                                                                     cost_edge, cost_cloud, max_cost, T_max, t_delay_e,
+                                                                     t_delay_c,
+                                                                     user_data, p_user, P_allocation, p_m, r_m, R_edge)]
+                            if feasible_servers:
+                                new_server = random.choice(feasible_servers)
+                                new_individual[i, current_server] = 0
+                                new_individual[i, new_server] = 1
+
+                        # 挪动策略（move_user）
+                        elif operation == "move_user":
+                            i = np.random.choice(num_users)  # 随机选择一个用户
+                            current_server = np.argmax(individual[i])
+
+                            feasible_servers = [j for j in range(num_servers) if j != current_server]
+                            if feasible_servers:
+                                new_server = random.choice(feasible_servers)
+                                new_individual[i, current_server] = 0
+                                new_individual[i, new_server] = 1
+
+                        # 子集重新分配策略（reassign_subset）
+                        elif operation == "reassign_subset":
+                            # 随机选择一组用户
+                            subset_size = np.random.randint(1, num_users // 2)  # 随机选择子集大小
+                            subset_users = np.random.choice(num_users, subset_size, replace=False)
+                            for i in subset_users:
+                                current_server = np.argmax(individual[i])
+                                feasible_servers = [j for j in range(num_servers) if j != current_server]
+                                if feasible_servers:
+                                    new_server = random.choice(feasible_servers)
+                                    new_individual[i, current_server] = 0
+                                    new_individual[i, new_server] = 1
                     new_individual[i, current_server] = 0
                     new_individual[i, new_server] = 1
 
