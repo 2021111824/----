@@ -211,6 +211,12 @@ def solve_model():
                 server_idx = np.argmax(final_individual[i])
                 server_type = "Edge" if server_idx < m_edge else "Cloud"
                 f.write(f"  User {i} -> Server {server_idx} ({server_type})\n")
+
+            # 添加运行时间到实验结果文件
+            end_time = time.time()
+            execution_time = end_time - start_time
+            f.write(f"\nTotal execution time: {execution_time:.2f} seconds\n")
+
         print(f"Simulation results saved to '{output_folder}'.\n")
 
         # 记录资源使用情况

@@ -86,11 +86,11 @@ def initialize_topology():
     r_m = 10  # 单位（RU）
 
     # ========== 4. 成本参数 ==========
-    monthly_fixed_cost = 60  # 每月固定成本（单位：某种货币）
+    monthly_fixed_cost = 600  # 每月固定成本（单位：某种货币）
     daily_fixed_cost = monthly_fixed_cost / 30  # 每日固定成本
     cost_edge = {"fixed": daily_fixed_cost}  # 边缘服务器成本单价
-    cost_cloud = {"p_net": 0.5}  # 云服务器成本单价
-    max_cost = 100000  # 最大允许总成本
+    cost_cloud = {"p_net": 1}  # 云服务器成本单价
+    max_cost = 2000  # 最大允许总成本
 
     # ========== 5. 遗传算法参数 ==========
     Population = 100  # 初始种群大小

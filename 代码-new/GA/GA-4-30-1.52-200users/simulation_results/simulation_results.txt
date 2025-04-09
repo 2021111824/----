@@ -208,3 +208,5 @@ User-to-Server Assignment:
   User 197 -> Server 9 (Edge)
   User 198 -> Server 0 (Edge)
   User 199 -> Server 1 (Edge)
+
+Total execution time: 701.14 seconds

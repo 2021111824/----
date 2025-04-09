@@ -38,7 +38,7 @@ if __name__ == "__main__":
     best_final_result = None
     best_final_jain = -1
     best_final_response_times = None
-    for _ in range(15):
+    for _ in range(10):
         result, best_jain, best_response_times = greedy_algorithm(n, m_edge, m_cloud, priorities, weights, cost_edge, cost_cloud, max_cost, T_max,
                                                                   R_bandwidth, t_delay_e, t_delay_c, p_m, r_m, R_edge, user_data, p_user, P_allocation)
         if best_jain > best_final_jain:
@@ -125,6 +125,11 @@ if __name__ == "__main__":
                 server_idx = np.argmax(best_final_result[i])
                 server_type = "Edge" if server_idx < m_edge else "Cloud"
                 f.write(f"  User {i} -> Server {server_idx} ({server_type})\n")
+
+            # 添加运行时间到实验结果文件
+            end_time = time.time()
+            execution_time = end_time - start_time
+            f.write(f"\nTotal execution time: {execution_time:.2f} seconds\n")
 
         # ========== 可视化 ==========
         # 1. 绘制适应度变化曲线

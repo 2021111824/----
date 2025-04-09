@@ -148,3 +148,5 @@ User-to-Server Assignment:
   User 137 -> Server 6 (Edge)
   User 138 -> Server 6 (Edge)
   User 139 -> Server 7 (Edge)
+
+Total execution time: 109.03 seconds

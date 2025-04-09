@@ -125,6 +125,11 @@ if __name__ == "__main__":
                 server_type = "Edge" if server_idx < m_edge else "Cloud"
                 f.write(f"  User {i} -> Server {server_idx} ({server_type})\n")
 
+            # 添加运行时间到实验结果文件
+            end_time = time.time()
+            execution_time = end_time - start_time
+            f.write(f"\nTotal execution time: {execution_time:.2f} seconds\n")
+
         # ========== 可视化 ==========
         # 1. 绘制适应度变化曲线
         # plot_fitness_history(fitness_history, output_folder)

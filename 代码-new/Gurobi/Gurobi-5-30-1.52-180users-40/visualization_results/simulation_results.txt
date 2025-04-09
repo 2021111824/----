@@ -1,10 +1,10 @@
 ===== Simulation Results =====
 Jain公平性指数： 0.9927
-所有用户的平均响应时间: 11.91 ms
+所有用户的平均响应时间: 11.93 ms
 
 Response Time Statistics by Priority:
   Priority 1: Mean=13.84 ms (Limit: 30 ms) [OK]
-  Priority 2: Mean=9.67 ms (Limit: 25 ms) [OK]
+  Priority 2: Mean=9.75 ms (Limit: 25 ms) [OK]
   Priority 3: Mean=7.92 ms (Limit: 20 ms) [OK]
 
 User-to-Server Assignment:
@@ -67,7 +67,7 @@ User-to-Server Assignment:
   User 56 -> Server 0 (Edge)
   User 57 -> Server 3 (Edge)
   User 58 -> Server 6 (Edge)
-  User 59 -> Server 3 (Edge)
+  User 59 -> Server 5 (Edge)
   User 60 -> Server 7 (Edge)
   User 61 -> Server 4 (Edge)
   User 62 -> Server 2 (Edge)
@@ -76,11 +76,11 @@ User-to-Server Assignment:
   User 65 -> Server 9 (Edge)
   User 66 -> Server 4 (Edge)
   User 67 -> Server 0 (Edge)
-  User 68 -> Server 3 (Edge)
+  User 68 -> Server 8 (Edge)
   User 69 -> Server 2 (Edge)
   User 70 -> Server 8 (Edge)
   User 71 -> Server 2 (Edge)
-  User 72 -> Server 6 (Edge)
+  User 72 -> Server 1 (Edge)
   User 73 -> Server 4 (Edge)
   User 74 -> Server 1 (Edge)
   User 75 -> Server 10 (Cloud)
@@ -95,7 +95,7 @@ User-to-Server Assignment:
   User 84 -> Server 8 (Edge)
   User 85 -> Server 2 (Edge)
   User 86 -> Server 4 (Edge)
-  User 87 -> Server 5 (Edge)
+  User 87 -> Server 3 (Edge)
   User 88 -> Server 3 (Edge)
   User 89 -> Server 4 (Edge)
   User 90 -> Server 9 (Edge)
@@ -132,7 +132,7 @@ User-to-Server Assignment:
   User 121 -> Server 7 (Edge)
   User 122 -> Server 6 (Edge)
   User 123 -> Server 5 (Edge)
-  User 124 -> Server 0 (Edge)
+  User 124 -> Server 3 (Edge)
   User 125 -> Server 9 (Edge)
   User 126 -> Server 5 (Edge)
   User 127 -> Server 4 (Edge)
@@ -144,7 +144,7 @@ User-to-Server Assignment:
   User 133 -> Server 0 (Edge)
   User 134 -> Server 5 (Edge)
   User 135 -> Server 5 (Edge)
-  User 136 -> Server 8 (Edge)
+  User 136 -> Server 0 (Edge)
   User 137 -> Server 9 (Edge)
   User 138 -> Server 9 (Edge)
   User 139 -> Server 0 (Edge)
@@ -163,7 +163,7 @@ User-to-Server Assignment:
   User 152 -> Server 0 (Edge)
   User 153 -> Server 6 (Edge)
   User 154 -> Server 6 (Edge)
-  User 155 -> Server 1 (Edge)
+  User 155 -> Server 2 (Edge)
   User 156 -> Server 7 (Edge)
   User 157 -> Server 0 (Edge)
   User 158 -> Server 7 (Edge)
@@ -188,3 +188,5 @@ User-to-Server Assignment:
   User 177 -> Server 0 (Edge)
   User 178 -> Server 2 (Edge)
   User 179 -> Server 7 (Edge)
+
+Total execution time: 30.75 seconds
