@@ -169,4 +169,4 @@ User-to-Server Assignment:
   User 158 -> Server 7 (Edge)
   User 159 -> Server 4 (Edge)
 
-Total execution time: 17.70 seconds
+Total execution time: 13.17 seconds

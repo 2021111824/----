@@ -3,9 +3,9 @@
 import numpy as np
 import random
 # 固定 numpy 的随机种子
-np.random.seed(40)
+np.random.seed(48)
 # 固定 random 模块的随机种子
-random.seed(40)
+random.seed(48)
 
 
 # ========== 计算逻辑 ==========
