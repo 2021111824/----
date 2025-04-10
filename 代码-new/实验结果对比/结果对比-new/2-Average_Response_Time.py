@@ -12,27 +12,30 @@ if __name__ == "__main__":
     execution_ratios = [140, 160, 180, 200]
 
     response_times_1 = {
-        'Gurobi': [15.93, 13.69, 15.31, 13.44],
-        'GSAFO': [15.86, 13.34, 15.00, 12.73],
-        'GA': [15.63, 13.30, 15.15, 13.27],
-        'Greedy': [15.85, 13.25, 15.50, 12.84],
-        'Random': [16.30, 14.21, 15.95, 13.84]
+        'Gurobi': [15.93, 13.69, 12.47, 13.44],
+        # 'GSAFO': [15.86, 13.34, 15.00, 12.73],
+        'GSAFO': [15.78, 13.77, 12.08, 12.77],
+        'GA': [15.63, 13.30, 12.21, 13.27],
+        'Greedy': [15.85, 13.25, 11.98, 12.84],
+        'Random': [16.30, 14.21, 13.57, 13.84]
     }
 
     response_times_2 = {
-        'Gurobi': [11.80, 9.85, 11.42, 9.13],
-        'GSAFO': [11.66, 9.73, 11.21, 9.51],
-        'GA': [11.35, 9.75, 11.17, 9.29],
-        'Greedy': [11.63, 10.22, 11.98, 10.40],
-        'Random': [13.13, 11.80, 12.51, 10.48]
+        'Gurobi': [11.80, 9.85, 8.62, 9.13],
+        # 'GSAFO': [11.66, 9.73, 11.21, 9.51],
+        'GSAFO': [11.68, 10.01, 9.17, 10.19],
+        'GA': [11.35, 9.75, 8.92, 9.29],
+        'Greedy': [11.63, 10.22, 9.26, 10.40],
+        'Random': [13.13, 11.80, 10.31, 10.48]
     }
 
     response_times_3 = {
-        'Gurobi': [8.87, 7.77, 8.75, 7.63],
-        'GSAFO': [9.76, 7.98, 9.26, 8.26],
-        'GA': [9.25, 8.30, 9.00, 7.80],
-        'Greedy': [9.65, 8.15, 9.81, 8.56],
-        'Random': [9.33, 11.45, 13.02, 8.87]
+        'Gurobi': [8.87, 7.77, 7.14, 7.63],
+        # 'GSAFO': [9.76, 7.98, 9.26, 8.26],
+        'GSAFO': [9.61, 8.56, 7.52, 8.11],
+        'GA': [9.25, 8.30, 7.68, 7.80],
+        'Greedy': [9.65, 8.15, 7.86, 8.56],
+        'Random': [9.33, 11.45, 8.15, 8.87]
     }
 
     # Plotting the line chart
@@ -93,6 +96,6 @@ if __name__ == "__main__":
     plt.tight_layout()
 
     # Saving the image to the specified folder
-    image_path = os.path.join(output_folder, 'Jain-fairness-index-line-compair.png')
+    image_path = os.path.join(output_folder, 'Response-time-compair.png')
     plt.savefig(image_path, transparent=False)
     plt.show()
