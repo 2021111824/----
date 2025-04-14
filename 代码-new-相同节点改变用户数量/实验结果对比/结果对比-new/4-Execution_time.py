@@ -11,10 +11,11 @@ if __name__ == "__main__":
     # Example data
     execution_ratios = [140, 160, 180, 200]  # 修改横坐标为 140, 160, 180, 200
     execution_times = {
-        'Gurobi': [15.14, 17.70, 16.29, 28.83],
+        # 'Gurobi': [15.14, 17.70, 16.29, 28.83],
         # 'GSAFO': [109.03, 136.59, 159.29, 181.43],
         'GSAFO': [34.79, 43.90, 51.75, 57.30],
         'GA': [140.31, 286.80, 382.31, 701.14],
+        'TABU': [175.30, 226.22, 398.38, 589.30],
         'Greedy': [9.10, 13.77, 13.88, 17.16],
         'Random': [1.71, 1.47, 1.72, 1.74]
     }
@@ -25,13 +26,13 @@ if __name__ == "__main__":
     bar_width = 0.1
     index = np.arange(len(execution_ratios))
 
-    colors = ['#bb7f7e', '#e4c286', '#86b573', '#a6c2f1', '#4f7b99']  # Colors slightly darker
+    colors = ['#86b573', '#e4c286', '#bb7f7e', '#a6c2f1', '#4f7b99']  # Colors slightly darker
 
     for i, (label, execution_time) in enumerate(execution_times.items()):
         ax.bar(index + i * bar_width, execution_time, bar_width, label=label, color=colors[i])
 
     ax.set_xlabel('Number of Users')
-    ax.set_ylabel('Execution Time(ms)')
+    ax.set_ylabel('Execution Time(s)')
     ax.set_title('Execution Time of Different Algorithms')
 
     # 设置横坐标标签为 140, 160, 180, 200

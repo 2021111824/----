@@ -11,10 +11,11 @@ if __name__ == "__main__":
     # Example data
     execution_ratios = [140, 160, 180, 200]  # 修改横坐标为 140, 160, 180, 200
     costs = {
-        'Gurobi': [241.38, 226.93, 214.28, 321.43],
+        # 'Gurobi': [241.38, 226.93, 214.28, 321.43],
         # 'GSAFO': [213.97, 214.22, 200.00, 271.67],
         'GSAFO': [200.00, 226.40, 200.00, 296.06],
         'GA': [226.05, 264.79, 345.68, 489.52],
+        'TABU': [253.51, 378.35, 291.90, 377.03],
         'Greedy': [238.97, 225.85, 212.04, 333.76],
         'Random': [373.08, 454.84, 444.56, 489.66]
     }
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     bar_width = 0.1
     index = np.arange(len(execution_ratios))
 
-    colors = ['#bb7f7e', '#e4c286', '#86b573', '#a6c2f1', '#4f7b99']  # Colors slightly darker
+    colors = ['#86b573', '#e4c286', '#bb7f7e', '#a6c2f1', '#4f7b99']  # Colors slightly darker
 
     for i, (label, cost) in enumerate(costs.items()):
         ax.bar(index + i * bar_width, cost, bar_width, label=label, color=colors[i])

@@ -11,10 +11,11 @@ if __name__ == "__main__":
     # Example data
     execution_ratios = [140, 160, 180, 200]  # 修改横坐标为 140, 160, 180, 200
     jian_indexes = {
-        'Gurobi': [0.9957, 0.9928, 0.9948, 0.9908],
+        # 'Gurobi': [0.9957, 0.9928, 0.9948, 0.9908],
         # 'GSAFO': [0.9935, 0.9916, 0.9917, 0.9745],
         'GSAFO': [0.9936, 0.9883, 0.9901, 0.9562],
         'GA': [0.9947, 0.9881, 0.9789, 0.9534],
+        'TABU': [0.9908, 0.9569, 0.9664, 0.9517],
         'Greedy': [0.9812, 0.9736, 0.9664, 0.9265],
         'Random': [0.9288, 0.8457, 0.8853, 0.8811]
     }
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     bar_width = 0.1
     index = np.arange(len(execution_ratios))
 
-    colors = ['#bb7f7e', '#e4c286', '#86b573', '#a6c2f1', '#4f7b99']  # Colors slightly darker
+    colors = ['#86b573', '#e4c286', '#bb7f7e', '#a6c2f1', '#4f7b99']  # Colors slightly darker
 
     for i, (label, jain_index) in enumerate(jian_indexes.items()):
         ax.bar(index + i * bar_width, jain_index, bar_width, label=label, color=colors[i])
