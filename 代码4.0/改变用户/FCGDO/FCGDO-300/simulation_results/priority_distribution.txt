@@ -1,0 +1,4 @@
+===== Priority Distribution =====
+Priority 1: 184 users
+Priority 2: 89 users
+Priority 3: 27 users

@@ -1,146 +1,113 @@
-import numpy as np
-from calculations import compute_response_times, calculate_weighted_jain_index
-from constraints import check_constraints
+---
 
+### **以在线视频为例解析模型的应用流程**
 
-\# fcgdo 算法优化
-def fcgdo_algorithm(n, m_edge, m_cloud, priorities, weights, cost_edge, cost_cloud, max_cost, T_max,
-                    R_bandwidth, t_delay_e, t_delay_c, p_m, r_m, R_edge, user_data, p_user, P_allocation, P_cloud):
-    n_users = n
-    n_servers = m_edge + m_cloud
-    individual = np.zeros((n_users, n_servers), dtype=int)
+以下以**视频流媒体平台（如Netflix）**为例，说明您的模型如何优化边缘-云协同系统中的公平性与优先级保障。假设平台用户分为**VIP用户（高优先级）**和**免费用户（低优先级）**，需在带宽和计算资源受限时，保障VIP体验的同时避免免费用户服务完全劣化。
 
-​    \# 按优先级降序排列用户
-​    sorted_indices = np.argsort(priorities)[::-1]
+---
 
-​    valid_individual = False
-​    attempt_count = 0
-​    bad_connections = []
-​    no_improvement_count = 0
-​    max_no_improvement = 5
-​    max_iterations = 10
-​    iteration_count = 0
+#### **一、模型参数映射到视频流媒体场景**
 
-​    while not valid_individual:
-​        individual = np.zeros((n_users, n_servers), dtype=int)
-​        server_compute_capability = np.zeros(n_servers)
-​        \# 缓存初始的Jain指数
-​        current_jain = calculate_weighted_jain_index(individual, n, m_edge, m_cloud, weights, t_delay_e, t_delay_c,
-​                                                     user_data, R_bandwidth, p_user, P_allocation, P_cloud)
+| **模型要素**                | **视频流媒体场景对应实例**                                   |
+| --------------------------- | ------------------------------------------------------------ |
+| **用户 \(u_i\)**            | 观看视频的用户，分为VIP（\(L_i=2\)）和免费用户（\(L_i=1\)），权重 \(W_i=2^{L_i-1}\)。 |
+| **微服务 \(m\)**            | 视频转码服务：将原始视频转码为不同分辨率（4K/1080p/720p）。  |
+| **边缘服务器 \(S_{edge}\)** | 部署在各大城市CDN节点上的转码集群，负责实时转码与分发。      |
+| **云服务器 \(S_{cloud}\)**  | 公有云（如AWS）上的转码服务，用于处理边缘超载时的请求。      |
+| **请求 \(q_i\)**            | 用户点播视频：<br>- \(D_i^{in}\)：用户设备信息（分辨率偏好）<br>- \(D_i^{out}\)：视频分片数据量<br>- \(p_i\)：转码计算量（与视频时长和分辨率相关）。 |
 
-​        for i in sorted_indices:
-​            best_server = -1
-​            best_jain = -1
+---
 
-​            \# 计算潜在服务器
-​            potential_servers = np.where(
-​                np.ceil((server_compute_capability + P_allocation[i]) / p_m) * r_m <= R_edge
-​            )[0]
+#### **二、模型运行流程示例**
 
-​            \# 预计算部分数据
-​            temp_individual_base = individual.copy()
-​            temp_individual_base[i] = 0
+**场景描述**：VIP用户A（城市中心）和免费用户B（偏远地区）同时请求同一4K视频，边缘服务器资源紧张。
 
-​            for server_idx in potential_servers:
-​                temp_individual = temp_individual_base.copy()
-​                temp_individual[i, server_idx] = 1
+##### **1. 初始状态**
+- **边缘服务器**：上海节点（\(S_1\)）剩余计算资源 \(R_1^e=100\) RU，带宽 \(b_1^e=1\) Gbps。
+- **微服务部署**：\(y_1=10\) 个转码实例（每个实例消耗 \(r^m=10\) RU，总计算能力 \(P^m=500\) CU/s）。
+- **云服务器**：计算能力 \(P^c=2000\) CU/s，单位成本 \(p_{net}=0.01\) 元/CU。
 
-​                \# 计算加权Jain指数
-​                jain_index = calculate_weighted_jain_index(temp_individual, n, m_edge, m_cloud, weights,
-​                                                           t_delay_e, t_delay_c, user_data, R_bandwidth,
-​                                                           p_user, P_allocation, P_cloud)
+##### **2. 用户请求参数**
+- **用户A（VIP）**：
+  - \(L_i=2\), \(W_i=2\)
+  - \(D_i^{in}=0.1\) MB（分辨率请求）, \(D_i^{out}=100\) MB（4K分片）, \(p_i=800\) CU。
+- **用户B（免费）**：
+  - \(L_i=1\), \(W_i=1\)
+  - \(D_i^{in}=0.1\) MB, \(D_i^{out}=50\) MB（720p分片）, \(p_i=200\) CU。
 
-​                if jain_index > best_jain:
-​                    best_jain = jain_index
-​                    best_server = server_idx
+##### **3. 资源分配与路由决策**
+- **路由方案 \(X\)**：
+  - 用户A和B均连接至上海边缘节点 \(S_1\)（\(x_{A1}=1, x_{B1}=1\)）。
+- **带宽分配 \(b_{ij}^e\)**：
+  - 用户A带宽：\(b_{A1}^e = \frac{2 \times 100}{2 \times 100 + 1 \times 50} \times 1 \text{Gbps} = 0.8 \text{Gbps}\)
+  - 用户B带宽：\(b_{B1}^e = \frac{1 \times 50}{250} \times 1 \text{Gbps} = 0.2 \text{Gbps}\)
+- **计算能力分配 \(P_{ij}^e\)**：
+  - 总需求：\(2 \times 800 + 1 \times 200 = 1800\) 加权CU
+  - 用户A分配：\(\frac{2 \times 800}{1800} \times 500 = 444.4\) CU/s
+  - 用户B分配：\(\frac{1 \times 200}{1800} \times 500 = 55.6\) CU/s
 
-​            if best_server != -1:
-​                individual[i, best_server] = 1
-​                server_compute_capability[best_server] += P_allocation[i]
-​                new_jain = calculate_weighted_jain_index(individual, n, m_edge, m_cloud, weights, t_delay_e, t_delay_c,
-​                                                         user_data, R_bandwidth, p_user, P_allocation, P_cloud)
-​                if new_jain < current_jain:
-​                    bad_connections.append(i)
-​                current_jain = new_jain
+##### **4. 响应时间计算**
+- **用户A（边缘处理）**：
+  - \(t_{send}^e = 100 \text{MB} / 0.8 \text{Gbps} = 1 \text{s}\)
+  - \(t_p^e = 800 \text{CU} / 444.4 \text{CU/s} = 1.8 \text{s}\)
+  - \(t_d^e = 10 \text{ms}\)（上海本地延迟）
+  - **总响应时间 \(t_{A1} = 1 + 1.8 + 0.01 = 2.81 \text{s}\)**
+- **用户B（边缘处理）**：
+  - \(t_{send}^e = 50 \text{MB} / 0.2 \text{Gbps} = 2.5 \text{s}\)
+  - \(t_p^e = 200 \text{CU} / 55.6 \text{CU/s} = 3.6 \text{s}\)
+  - \(t_d^e = 50 \text{ms}\)（偏远地区延迟）
+  - **总响应时间 \(t_{B1} = 2.5 + 3.6 + 0.05 = 6.15 \text{s}\)**
 
-​        \# 检查约束
-​        valid_individual = check_constraints(individual, n, m_edge, m_cloud, priorities, R_bandwidth,
-​                                             cost_edge, cost_cloud, max_cost, T_max, t_delay_e, t_delay_c,
-​                                             user_data, p_user, P_allocation, p_m, r_m, R_edge, P_cloud)
+##### **5. 公平性评估**
+- **加权响应时间**：
+  - 用户A：\(2.81 \times 2 = 5.62\)
+  - 用户B：\(6.15 \times 1 = 6.15\)
+- **Jain公平指数**：
+  \[
+  F_{\text{Jain}} = \frac{(5.62 + 6.15)^2}{2 \times (5.62^2 + 6.15^2)} = \frac{138.9}{2 \times 70.3} \approx 0.987
+  \]
+  （接近1，说明在优先级差异下仍保持较高公平性）
 
-​        attempt_count += 1
+##### **6. 边缘资源超载时的动态调整**
+若此时新增VIP用户C请求：
+- **边缘资源检查**：
+  - 已用计算资源：\(y_1 \cdot r^m = 10 \times 10 = 100\) RU（无剩余）
+  - 计算需求：用户A+B+C共需 \(800+200+800=1800\) CU，超出边缘能力 \(500\) CU/s。
+- **动态响应**：
+  1. **微服务扩容**：在边缘节点临时增加实例（\(y_1=12\) → 需 \(12 \times 10=120\) RU，但 \(R_1^e=100\)，不可行）。
+  2. **卸载低优先级请求**：将用户B的请求路由至云端（\(x_{B1}=0, x_{B cloud}=1\)）。
+  3. **云端处理成本**：
+     - 用户B云端处理成本：\(C_{cloud} = 0.01 \times 200 = 2\) 元
+     - 用户B响应时间 \(t_{B cloud}\)：
+       - \(t_{send}^c = 50 \text{MB} / 0.1 \text{Gbps} = 4 \text{s}\)（假设免费用户云端带宽更低）
+       - \(t_p^c = 200 / 2000 = 0.1 \text{s}\)
+       - \(t_d^c = 100 \text{ms}\)
+       - **总时间 \(t_{B cloud} = 4 + 0.1 + 0.1 = 4.2 \text{s}\)（优于原边缘的6.15s）**
 
-​        if attempt_count > 100:
-​            print("Warning: Too many attempts to generate valid individual. Moving forward.")
-​            break
+---
 
-​    \# 对 bad_connections 中的请求进行迁移优化
-​    individual, current_jain = migrate_requests(individual, n, m_edge, m_cloud, weights, priorities, R_bandwidth,
-​                                                cost_edge, cost_cloud, max_cost, T_max, t_delay_e, t_delay_c,
-​                                                user_data, p_user, P_allocation, p_m, r_m, R_edge, bad_connections, P_cloud)
+#### **三、模型优势总结**
 
-​    \# 多次迁移整体请求以提升优化效果
-​    while True:
-​        all_users = set(range(n))
-​        individual, new_jain = migrate_requests(individual, n, m_edge, m_cloud, weights, priorities, R_bandwidth,
-​                                                cost_edge, cost_cloud, max_cost, T_max, t_delay_e, t_delay_c,
-​                                                user_data, p_user, P_allocation, p_m, r_m, R_edge, all_users, P_cloud)
+| **场景需求**         | **模型解决方案**                                             | **效果**                                                 |
+| -------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
+| **VIP用户低延迟**    | 通过权重 \(W_i\) 分配更多带宽和计算资源，优先处理高优先级请求。 | VIP用户A的响应时间（2.81s）显著低于免费用户B（6.15s）。  |
+| **免费用户基础保障** | 边缘超载时动态卸载至云端，利用 \(C_{cloud}\) 约束控制成本。  | 用户B在云端的响应时间（4.2s）仍可接受，避免服务中断。    |
+| **资源利用率最大化** | 微服务实例数 \(y_j\) 根据边缘资源 \(R_j^e\) 动态调整，避免过度部署。 | 上海节点满载时拒绝无效扩容，降低成本 \(C_{edge}\)。      |
+| **跨优先级公平性**   | 加权Jain指数同时考虑优先级差异和响应时间均衡，防止极端不公。 | 即使VIP用户更快，公平指数仍达0.987，系统整体公平性可控。 |
 
-​        if new_jain <= current_jain:
-​            no_improvement_count += 1
-​        else:
-​            no_improvement_count = 0
-​            current_jain = new_jain
+---
 
-​        if no_improvement_count >= max_no_improvement or iteration_count >= max_iterations:
-​            break
+#### **四、模型扩展场景**
 
-​        iteration_count += 1
+1. **突发流量应对**（如热门剧集上线）：
+   - 自动增加边缘节点微服务实例（\(y_j↑\)），同时为VIP用户预留资源（\(W_i\) 权重翻倍）。
 
-​    response_times = compute_response_times(individual, n, m_edge, m_cloud, t_delay_e, t_delay_c,
-​                                            user_data, R_bandwidth, p_user, P_allocation, P_cloud)
+2. **多分辨率动态适配**：
+   - 根据实时带宽 \(b_{ij}^e\) 调整请求的 \(D_i^{out}\)（如VIP用户网络波动时自动降为1080p）。
 
-​    return individual, current_jain, response_times
+3. **成本-体验权衡**：
+   - 设置不同成本预算 \(C_{max}\)，模型自动选择边缘/云资源分配比例，生成帕累托最优解集。
 
+---
 
-\# 迁移请求
-def migrate_requests(individual, n, m_edge, m_cloud, weights, priorities, R_bandwidth, cost_edge, cost_cloud, max_cost,
-                     T_max, t_delay_e, t_delay_c, user_data, p_user, P_allocation, p_m, r_m, R_edge, user_indices, P_cloud):
-    current_jain = calculate_weighted_jain_index(individual, n, m_edge, m_cloud, weights, t_delay_e, t_delay_c,
-                                                 user_data, R_bandwidth, p_user, P_allocation, P_cloud)
-    n_servers = m_edge + m_cloud
-
-​    for user_idx in user_indices:
-​        best_server = -1
-​        max_jain = -1
-​        current_server = np.argmax(individual[user_idx])
-
-​        \# 预计算部分数据
-​        temp_individual_base = individual.copy()
-​        temp_individual_base[user_idx] = 0
-
-​        for server_idx in range(n_servers):
-​            if server_idx == current_server:
-​                continue
-​            temp_individual = temp_individual_base.copy()
-​            temp_individual[user_idx, server_idx] = 1
-
-​            \# 检查约束
-​            valid_individual = check_constraints(temp_individual, n, m_edge, m_cloud, priorities, R_bandwidth,
-​                                                 cost_edge, cost_cloud, max_cost, T_max, t_delay_e, t_delay_c,
-​                                                 user_data, p_user, P_allocation, p_m, r_m, R_edge, P_cloud)
-​            if not valid_individual:
-​                continue
-
-​            new_jain = calculate_weighted_jain_index(temp_individual, n, m_edge, m_cloud, weights, t_delay_e, t_delay_c,
-​                                                     user_data, R_bandwidth, p_user, P_allocation, P_cloud)
-​            if new_jain > max_jain:
-​                max_jain = new_jain
-​                best_server = server_idx
-
-​        if best_server != -1 and max_jain > current_jain:
-​            individual[user_idx, current_server] = 0
-​            individual[user_idx, best_server] = 1
-​            current_jain = max_jain
-
-​    return individual, current_jain
+通过此案例可以看出，您的模型在**在线视频场景**中有效平衡了优先级保障、资源利用率和跨用户公平性，尤其适合需要动态资源调度的云边协同系统。
