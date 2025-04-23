@@ -1,0 +1,8 @@
+===== Cost Results =====
+Total Cost: 2660.63
+
+Cost Breakdown:
+  Edge Servers:
+    Fixed: 2000.00
+  Cloud Servers:
+    P_net: 660.63

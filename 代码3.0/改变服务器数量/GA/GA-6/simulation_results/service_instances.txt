@@ -1,0 +1,8 @@
+===== Service Instances per Server =====
+Server 0 (Edge): 18.0 instances
+Server 1 (Edge): 15.0 instances
+Server 2 (Edge): 22.0 instances
+Server 3 (Edge): 19.0 instances
+Server 4 (Edge): 17.0 instances
+Server 5 (Edge): 23.0 instances
+Server 6 (Cloud): 15.0 instances
